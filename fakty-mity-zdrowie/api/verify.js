@@ -7,13 +7,12 @@ export default async function handler(req, res) {
   }
 
   const { question } = req.body;
-
   if (!question || question.trim() === "") {
     return res.status(400).json({ error: "Brak pytania" });
   }
 
   try {
-    // Wywołanie OpenRouter
+    // Wywołanie OpenRouter z kluczem z Vercel
     const response = await fetch(
       "https://openrouter.ai/api/v1/chat/completions",
       {
@@ -48,20 +47,23 @@ WYJAŚNIENIE:
 
     const data = await response.json();
 
-    // OpenRouter free tier czasem zwraca "choices", czasem [0].generated_text
+    // obsługa różnych formatów odpowiedzi free tier
     let resultText = "";
-    if (data.choices && data.choices[0].message) {
+    if (data.choices?.[0]?.message?.content) {
       resultText = data.choices[0].message.content;
     } else if (Array.isArray(data) && data[0]?.generated_text) {
       resultText = data[0].generated_text;
+    } else if (data.output_text) {
+      resultText = data.output_text;
     } else {
       resultText = "Brak odpowiedzi z AI";
+      console.log("Odpowiedź OpenRouter:", JSON.stringify(data, null, 2));
     }
 
     res.status(200).json({ result: resultText });
 
-  } catch (error) {
-    console.error("Błąd API:", error);
+  } catch (err) {
+    console.error("Błąd API:", err);
     res.status(500).json({ error: "Błąd serwera" });
   }
 }
