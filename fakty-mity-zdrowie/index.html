@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fakty i Mity: Zdrowie</title>
+
+<style>
+body {
+    font-family: Arial;
+    background: #f4f6f8;
+    padding: 20px;
+}
+
+.container {
+    max-width: 900px;
+    margin: auto;
+    background: white;
+    padding: 30px;
+    border-radius: 8px;
+}
+
+textarea {
+    width: 100%;
+    height: 100px;
+    margin-top: 20px;
+    padding: 10px;
+}
+
+select {
+    width: 100%;
+    margin-top: 20px;
+    padding: 10px;
+}
+
+button {
+    margin-top: 10px;
+    padding: 10px 20px;
+}
+
+.report {
+    margin-top: 30px;
+    padding: 20px;
+    background: #eef1f5;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+<h1>Fakty i Mity: Zdrowie</h1>
+
+<textarea id="questionInput" placeholder="Wpisz swoje pytanie"></textarea>
+<button onclick="verifyFact()">Weryfikuj</button>
+
+<select id="topicSelect" onchange="insertQuestion()">
+<option value="">-- Wybierz temat --</option>
+<optgroup label="SZCZEPIENIA">
+<option>Czy szczepionki powodują autyzm?</option>
+<option>Czy szczepionki przeciążają układ odpornościowy dziecka?</option>
+<option>Czy naturalne przechorowanie daje lepszą odporność niż szczepienie?</option>
+<option>Czy szczepionki zawierają toksyczne dawki rtęci lub aluminium?</option>
+</optgroup>
+<optgroup label="LEKI I TERAPIE">
+<option>Czy antybiotyki działają na infekcje wirusowe?</option>
+<option>Czy witamina C leczy przeziębienie?</option>
+<option>Czy suplementy mogą zastąpić leczenie farmakologiczne?</option>
+</optgroup>
+</select>
+
+<div id="loading"></div>
+<div id="report" class="report"></div>
+
+</div>
+
+<script>
+function insertQuestion() {
+    const select = document.getElementById("topicSelect");
+    const question = select.value;
+    if (question) {
+        document.getElementById("questionInput").value = question;
+        verifyFact();
+    }
+}
+
+async function verifyFact() {
+    const question = document.getElementById("questionInput").value;
+    const report = document.getElementById("report");
+    const loading = document.getElementById("loading");
+
+    if (!question.trim()) return;
+
+    loading.innerText = "Weryfikacja w toku...";
+    report.innerHTML = "";
+
+    const response = await fetch("/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question })
+    });
+
+    const data = await response.json();
+    loading.innerText = "";
+
+    if (data.result) {
+        report.innerText = data.result;
+    } else {
+        report.innerText = "Błąd weryfikacji.";
+    }
+}
+</script>
+
+</body>
+</html>
