@@ -4,10 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Fakty i Mity: Zdrowie</title>
-
 <style>
 body {
-    font-family: Arial;
+    font-family: Arial, sans-serif;
     background: #f4f6f8;
     padding: 20px;
 }
@@ -42,12 +41,11 @@ button {
     margin-top: 30px;
     padding: 20px;
     background: #eef1f5;
+    white-space: pre-line;
 }
 </style>
 </head>
-
 <body>
-
 <div class="container">
 <h1>Fakty i Mity: Zdrowie</h1>
 
@@ -65,13 +63,41 @@ button {
 <optgroup label="LEKI I TERAPIE">
 <option>Czy antybiotyki działają na infekcje wirusowe?</option>
 <option>Czy witamina C leczy przeziębienie?</option>
+<option>Czy leki przeciwbólowe zawsze niszczą wątrobę lub nerki?</option>
 <option>Czy suplementy mogą zastąpić leczenie farmakologiczne?</option>
+<option>Czy „naturalne” preparaty są zawsze bezpieczniejsze niż leki na receptę?</option>
+</optgroup>
+<optgroup label="ŻYWIENIE">
+<option>Czy jedzenie po godzinie 18:00 powoduje przyrost masy ciała?</option>
+<option>Czy gluten szkodzi każdemu?</option>
+<option>Czy brązowy cukier jest zdrowszy niż biały?</option>
+<option>Czy produkty „light” zawsze sprzyjają odchudzaniu?</option>
+<option>Czy picie ośmiu szklanek wody dziennie jest konieczne dla każdego?</option>
+<option>Czy mleko jest niezbędne dorosłym dla zdrowych kości?</option>
+</optgroup>
+<optgroup label="DIETY I „DETOX”">
+<option>Czy diety sokowe oczyszczają organizm z toksyn?</option>
+<option>Czy organizm wymaga regularnego „odkwaszania”?</option>
+<option>Czy głodówki przyspieszają metabolizm?</option>
+<option>Czy spalanie tłuszczu można ukierunkować na jedną część ciała ćwiczeniami?</option>
+</optgroup>
+<optgroup label="CHOROBY, ODPORNOŚĆ I PROFILAKTYKA">
+<option>Czy zimne powietrze powoduje przeziębienie?</option>
+<option>Czy stres jest bezpośrednią przyczyną wrzodów żołądka?</option>
+<option>Czy cukier powoduje nadpobudliwość u dzieci?</option>
+<option>Czy kawa zawsze odwadnia organizm?</option>
+<option>Czy maseczki chronią przed wirusami?</option>
+</optgroup>
+<optgroup label="TECHNOLOGIA I ŚRODOWISKO">
+<option>Czy kuchenki mikrofalowe niszczą wartości odżywcze bardziej niż tradycyjne gotowanie?</option>
+<option>Czy telefony komórkowe w standardowym użytkowaniu powodują nowotwory?</option>
+<option>Czy klimatyzacja bezpośrednio wywołuje choroby?</option>
+<option>Czy technologia 5G wpływa negatywnie na zdrowie?</option>
 </optgroup>
 </select>
 
 <div id="loading"></div>
 <div id="report" class="report"></div>
-
 </div>
 
 <script>
@@ -94,22 +120,29 @@ async function verifyFact() {
     loading.innerText = "Weryfikacja w toku...";
     report.innerHTML = "";
 
-    const response = await fetch("/verify", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question })
-    });
+    // --- fetch do backendu Vercel ---
+    try {
+        const response = await fetch("/api/verify", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ question })
+        });
 
-    const data = await response.json();
-    loading.innerText = "";
+        const data = await response.json();
+        loading.innerText = "";
 
-    if (data.result) {
-        report.innerText = data.result;
-    } else {
-        report.innerText = "Błąd weryfikacji.";
+        if (data.result) {
+            report.innerText = data.result;
+        } else {
+            report.innerText = "Brak odpowiedzi lub błąd AI.";
+        }
+
+    } catch (err) {
+        loading.innerText = "";
+        report.innerText = "Błąd połączenia z serwerem.";
+        console.error(err);
     }
 }
 </script>
-
 </body>
 </html>
