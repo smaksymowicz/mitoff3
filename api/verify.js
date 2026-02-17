@@ -18,8 +18,21 @@ export default async function handler(req, res) {
         body: JSON.stringify({
           model: "openrouter/free",
           messages: [
-            { role: "system", content: "Jesteś ekspertem EBM. Odpowiedz w formacie WERDYKT, PRAWDOPODOBIEŃSTWO, WYJAŚNIENIE, ŹRÓDŁA" },
-            { role: "user", content: question }
+            {
+              role: "system",
+              content: `
+Jesteś ekspertem medycyny opartej na dowodach (EBM).
+Odpowiedz w formacie:
+WERDYKT: PRAWDA lub FAŁSZ
+PRAWDOPODOBIEŃSTWO MITU: procent
+WYJAŚNIENIE:
+ŹRÓDŁA: podaj linki do WHO, CDC, PubMed, Cochrane
+              `
+            },
+            {
+              role: "user",
+              content: question
+            }
           ],
           temperature: 0.2
         })
@@ -27,11 +40,23 @@ export default async function handler(req, res) {
     );
 
     const data = await response.json();
-    let resultText = data.choices?.[0]?.message?.content || "Brak odpowiedzi";
+
+    // obsługa różnych formatów free tier
+    let resultText = "";
+    if (data.choices?.[0]?.message?.content) {
+      resultText = data.choices[0].message.content;
+    } else if (Array.isArray(data) && data[0]?.generated_text) {
+      resultText = data[0].generated_text;
+    } else if (data?.output_text) { 
+      resultText = data.output_text;
+    } else {
+      resultText = "Brak odpowiedzi z AI";
+    }
+
     res.status(200).json({ result: resultText });
 
   } catch (err) {
-    console.error(err);
+    console.error("Błąd API:", err);
     res.status(500).json({ error: "Błąd serwera" });
   }
 }
